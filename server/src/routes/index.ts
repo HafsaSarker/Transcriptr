@@ -1,11 +1,11 @@
 import express from "express";
 
-import ExampleRouter from "./example";
+import TranscribeRouter from "./transcribe";
 
 const router = express.Router();
 
 export default (): express.Router => {
-  ExampleRouter(router);
-  // more router here
+  TranscribeRouter(router);
+
   return router;
 };

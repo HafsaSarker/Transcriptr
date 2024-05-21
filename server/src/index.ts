@@ -5,9 +5,7 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
 import router from "./routes";
-import { connectDB } from "./db/connect";
 import dotenv from "dotenv";
-
 dotenv.config();
 
 const app = express();
@@ -29,7 +27,6 @@ app.use("/api", router());
 
 const boot = async () => {
   try {
-    await connectDB();
     server.listen(8080, () => {
       console.log("Server running on http://localhost:8080/");
     });
