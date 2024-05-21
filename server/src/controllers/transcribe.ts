@@ -2,10 +2,12 @@ import { Request, Response } from "express";
 import ytdl from "ytdl-core";
 import fs from "fs";
 import { initializeSpeechClient } from "../config/googleCloudClient";
+import { protos } from "@google-cloud/speech";
+import { transcribeWithTimestamps } from "../util/transcribeWithTimestamps";
 
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 import ffmpeg from "fluent-ffmpeg";
-import { protos } from "@google-cloud/speech";
+
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 export async function transcribe(req: Request, res: Response) {
@@ -34,19 +36,23 @@ export async function transcribe(req: Request, res: Response) {
               const request: protos.google.cloud.speech.v1.IRecognizeRequest = {
                 audio,
                 config: {
+                  enableWordTimeOffsets: true,
                   encoding: "LINEAR16",
                   sampleRateHertz: 16000,
                   languageCode: "en-US",
                 },
               };
 
-              // Detect speech in the audio file
-              const [response] = await speechClient.recognize(request);
-              const transcript = response.results
-                .map((result) => result.alternatives[0].transcript)
-                .join("\n");
+              const [operation] = await speechClient.longRunningRecognize(
+                request
+              );
 
-              return res.status(200).json({ transcript });
+              const [response] = await operation.promise();
+
+              // Process the response to extract the transcript with timestamps
+              let transcriptWithTimestamps = transcribeWithTimestamps(response);
+
+              return res.status(200).json({ transcriptWithTimestamps });
             });
         });
     } else {
