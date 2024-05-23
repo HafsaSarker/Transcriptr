@@ -26,7 +26,7 @@ export const transcribeWithTimestamps = (
       } else {
         // Save the accumulated words for the current interval
         transcriptWithTimestamps.push({
-          time: `${intervalStart.toFixed(2)} - ${currentInterval.toFixed(2)}`,
+          time: intervalStart.toFixed(2),
           transcript: accumulatedWords.join(" "),
         });
 
@@ -41,7 +41,7 @@ export const transcribeWithTimestamps = (
   // Save any remaining words in the last interval
   if (accumulatedWords.length > 0) {
     transcriptWithTimestamps.push({
-      time: `${intervalStart.toFixed(2)} - ${currentInterval.toFixed(2)}`,
+      time: intervalStart.toFixed(2),
       transcript: accumulatedWords.join(" "),
     });
   }
