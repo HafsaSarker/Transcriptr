@@ -60,7 +60,9 @@ export async function transcribe(req: Request, res: Response) {
       res.status(404).json({ message: "Invalid Link" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    let message = "Server Error";
+    if (error instanceof Error) message = error.message;
+    res.status(500).json({ error: message });
   }
 }
 
