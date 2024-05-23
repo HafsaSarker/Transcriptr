@@ -5,24 +5,30 @@ import { Itranscript } from "../types/transcriptTypes";
 
 interface UploadProps {
   link: string;
-  setShowPrev: React.Dispatch<React.SetStateAction<boolean>>;
   setlink: React.Dispatch<React.SetStateAction<string>>;
   setTranscript: React.Dispatch<React.SetStateAction<Itranscript[] | null>>;
+  setShowLoader: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function Upload({ link, setShowPrev, setlink, setTranscript }: UploadProps) {
+function Upload({ link, setlink, setTranscript, setShowLoader }: UploadProps) {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setlink(e.target.value);
+    setTranscript(null);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setShowPrev(true);
+    // incase user does ctrl+a ctrl+v
+    setTranscript(null);
+    setShowLoader(true);
+
     const res = await axios.post("http://localhost:8080/api/transcribe", {
       link,
     });
 
     setTranscript(res.data.transcriptWithTimestamps);
+
+    setShowLoader(false);
   };
   return (
     <>
