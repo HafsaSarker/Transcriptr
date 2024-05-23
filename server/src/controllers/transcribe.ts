@@ -37,6 +37,7 @@ export async function transcribe(req: Request, res: Response) {
                 audio,
                 config: {
                   enableWordTimeOffsets: true,
+                  enableAutomaticPunctuation: true,
                   encoding: "LINEAR16",
                   sampleRateHertz: 16000,
                   languageCode: "en-US",

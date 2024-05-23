@@ -6,44 +6,43 @@ export const transcribeWithTimestamps = (
   time: string;
   transcript: string;
 }[] => {
-  const interval = 4; // Interval length in seconds
-  let currentTime = 0;
-  let currentTranscript = "";
+  let currentInterval = 3;
+  let accumulatedWords: string[] = [];
+  let intervalStart = 0;
   const transcriptWithTimestamps: { time: string; transcript: string }[] = [];
 
   response.results.forEach((result) => {
     result.alternatives[0].words.forEach((wordInfo) => {
+      // Calculate the start and end times in seconds
       const startSecs = parseFloat(
-        `${wordInfo.startTime?.seconds ?? 0}` +
-          `.${(wordInfo.startTime?.nanos ?? 0) / 1e6}`
+        `${wordInfo.startTime.seconds}` +
+          "." +
+          wordInfo.startTime.nanos / 100000000
       );
 
-      // Check if the word's start time exceeds the current interval
-      if (startSecs >= currentTime + interval) {
-        if (currentTranscript.trim().length > 0) {
-          transcriptWithTimestamps.push({
-            time: `${Math.floor(currentTime / 60)
-              .toString()
-              .padStart(2, "0")}:${(currentTime % 60)
-              .toString()
-              .padStart(2, "0")}`,
-            transcript: currentTranscript.trim(),
-          });
-        }
-        currentTime = Math.floor(startSecs / interval) * interval;
-        currentTranscript = "";
+      // Check if the word's start time falls within the current interval
+      if (startSecs < currentInterval) {
+        accumulatedWords.push(wordInfo.word);
+      } else {
+        // Save the accumulated words for the current interval
+        transcriptWithTimestamps.push({
+          time: `${intervalStart.toFixed(2)} - ${currentInterval.toFixed(2)}`,
+          transcript: accumulatedWords.join(" "),
+        });
+
+        // Move to the next interval
+        intervalStart = currentInterval;
+        currentInterval += 3;
+        accumulatedWords = [wordInfo.word];
       }
-      currentTranscript += `${wordInfo.word} `;
     });
   });
 
-  // Push the last chunk if any words are left
-  if (currentTranscript.trim().length > 0) {
+  // Save any remaining words in the last interval
+  if (accumulatedWords.length > 0) {
     transcriptWithTimestamps.push({
-      time: `${Math.floor(currentTime / 60)
-        .toString()
-        .padStart(2, "0")}:${(currentTime % 60).toString().padStart(2, "0")}`,
-      transcript: currentTranscript.trim(),
+      time: `${intervalStart.toFixed(2)} - ${currentInterval.toFixed(2)}`,
+      transcript: accumulatedWords.join(" "),
     });
   }
 
