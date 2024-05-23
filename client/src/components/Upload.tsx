@@ -8,9 +8,16 @@ interface UploadProps {
   setlink: React.Dispatch<React.SetStateAction<string>>;
   setTranscript: React.Dispatch<React.SetStateAction<Itranscript[] | null>>;
   setShowLoader: React.Dispatch<React.SetStateAction<boolean>>;
+  setSummary: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-function Upload({ link, setlink, setTranscript, setShowLoader }: UploadProps) {
+function Upload({
+  link,
+  setlink,
+  setTranscript,
+  setShowLoader,
+  setSummary,
+}: UploadProps) {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setlink(e.target.value);
     setTranscript(null);
@@ -22,17 +29,29 @@ function Upload({ link, setlink, setTranscript, setShowLoader }: UploadProps) {
     setTranscript(null);
     setShowLoader(true);
 
-    const res = await axios.post("http://localhost:8080/api/transcribe", {
-      link,
-    });
+    try {
+      const transcriptResponse = await axios.post(
+        "http://localhost:8080/api/transcribe",
+        { link }
+      );
+      const transcriptData = transcriptResponse.data.transcriptWithTimestamps;
+      setTranscript(transcriptData);
 
-    setTranscript(res.data.transcriptWithTimestamps);
-
-    setShowLoader(false);
+      const summaryResponse = await axios.post(
+        "http://localhost:8080/api/summarize",
+        { transcripts: transcriptData }
+      );
+      const summaryData = summaryResponse.data.result.summary_text;
+      setSummary(summaryData);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    } finally {
+      setShowLoader(false);
+    }
   };
   return (
     <>
-      <form onSubmit={handleSubmit} className="w-full pb-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-[700px] pb-4">
         <label className="input input-bordered flex items-center flex-wrap">
           <input
             onChange={handleChange}

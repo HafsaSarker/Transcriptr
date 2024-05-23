@@ -25,6 +25,7 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google-cloud/speech": "^6.5.0",
+    "@huggingface/inference": "^2.7.0",
     "@types/ffbinaries": "^1.1.5",
     "@types/fluent-ffmpeg": "^2.1.24",
     "axios": "^1.6.8",
