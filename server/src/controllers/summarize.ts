@@ -1,7 +1,4 @@
 import { Request, Response } from "express";
-import * as dotenv from "dotenv";
-
-dotenv.config();
 
 async function summarize(req: Request, res: Response) {
   const { transcripts } = req.body;

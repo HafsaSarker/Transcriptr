@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import ytdl from "ytdl-core";
 import fs from "fs";
-import { initializeSpeechClient } from "../config/googleCloudClient";
+import { initializeSpeechClient } from "../config/googleSpeechClient";
 import { protos } from "@google-cloud/speech";
 import { transcribeWithTimestamps } from "../util/transcribeWithTimestamps";
+import { initializeStorageClient } from "../config/googleCloudStorageClient";
+import path from "path";
 
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 import ffmpeg from "fluent-ffmpeg";
@@ -13,7 +15,9 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 export async function transcribe(req: Request, res: Response) {
   try {
     const { link } = req.body;
+
     const speechClient = await initializeSpeechClient();
+    const { storageClient, bucketName } = await initializeStorageClient();
 
     if (ytdl.validateURL(link)) {
       // download vid
@@ -29,12 +33,21 @@ export async function transcribe(req: Request, res: Response) {
             .toFormat("wav")
             .save("audio.wav")
             .on("end", async () => {
-              // convert audio to Base64-encoded string
-              const audio = {
-                content: fs.readFileSync("audio.wav").toString("base64"),
-              };
+              // Upload WAV file to Google Cloud Storage
+              const filePath = path.join(__dirname, "../../audio.wav");
+
+              const destination = `audio/${Date.now()}.wav`; // Unique file name
+
+              await storageClient.bucket(bucketName).upload(filePath, {
+                destination,
+              });
+
+              console.log(`${filePath} uploaded to ${bucketName}`);
+
+              const gcsUri = `gs://${bucketName}/${destination}`;
+
               const request: protos.google.cloud.speech.v1.IRecognizeRequest = {
-                audio,
+                audio: { uri: gcsUri },
                 config: {
                   enableWordTimeOffsets: true,
                   enableAutomaticPunctuation: true,
