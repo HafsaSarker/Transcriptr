@@ -14,7 +14,7 @@ export async function initializeStorageClient(): Promise<{
 
   // Create and return the Storage client
   const storageClient = new Storage({
-    keyFilename: "./speech-auth.json",
+    keyFilename: "./google-auth.json",
   });
   return { storageClient, bucketName };
 }
